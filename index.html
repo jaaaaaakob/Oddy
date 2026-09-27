@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Oddy-opslag</title>
+  <meta name="description" content="Indtast data på et materiale og sammenlign med resultater af Oddy-test. Finder direkte match eller det nærmeste testede materiale.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <p class="eyebrow">Præventiv konservering</p>
+      <h1>Oddy-opslag</h1>
+      <p class="lede">Indtast data på et materiale og sammenlign med kendte Oddy-testresultater. Findes materialet ikke, viser appen de testede materialer, der ligger tættest på.</p>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Sektioner">
+    <div class="wrap tabs-inner" role="tablist">
+      <button role="tab" class="tab" data-tab="tjek" aria-selected="true">Tjek materiale</button>
+      <button role="tab" class="tab" data-tab="mine" aria-selected="false">Mine materialer <span class="count" id="mine-count"></span></button>
+      <button role="tab" class="tab" data-tab="database" aria-selected="false">Testdatabase <span class="count" id="db-count"></span></button>
+      <button role="tab" class="tab" data-tab="import" aria-selected="false">Import og eksport</button>
+      <button role="tab" class="tab" data-tab="om" aria-selected="false">Om</button>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <div id="sample-banner" class="banner" hidden>
+      <strong>Eksempeldata er indlæst.</strong> Posterne er illustrative og ikke rigtige testresultater.
+      Importér jeres egne data under <a href="#" data-goto="import">Import og eksport</a>.
+    </div>
+
+    <!-- TJEK MATERIALE -->
+    <section class="panel" id="panel-tjek" role="tabpanel">
+      <div class="split">
+        <form id="query-form" class="card form" autocomplete="off">
+          <h2>Materialet</h2>
+          <p class="hint">Udfyld så mange felter som muligt. Kun udfyldte felter indgår i sammenligningen.</p>
+
+          <label>Beskrivelse
+            <input name="name" placeholder="fx Grå filt til montrebund">
+          </label>
+          <div class="row">
+            <label>Kategori
+              <input name="category" list="category-list" placeholder="fx Tekstil">
+            </label>
+            <label>Sammensætning / materialetype
+              <input name="composition" list="composition-list" placeholder="fx polyester, PE, uld">
+            </label>
+          </div>
+          <div class="row">
+            <label>Producent
+              <input name="manufacturer" list="manufacturer-list" placeholder="fx firmanavn">
+            </label>
+            <label>Produktnavn
+              <input name="product" list="product-list" placeholder="handelsnavn eller varenummer">
+            </label>
+          </div>
+          <label>Nøgleord / anvendelse
+            <input name="keywords" placeholder="fx montre, farvet, flammehæmmet">
+          </label>
+          <label>Noter
+            <textarea name="notes" rows="2" placeholder="Egne noter, fx hvor materialet skal bruges"></textarea>
+          </label>
+
+          <div class="actions">
+            <button type="submit" class="btn primary">Sammenlign</button>
+            <button type="button" class="btn" id="save-query">Gem i mine materialer</button>
+            <button type="reset" class="btn ghost">Ryd</button>
+          </div>
+        </form>
+
+        <div id="results" class="results" aria-live="polite">
+          <div class="empty">
+            <p>Resultaterne vises her.</p>
+            <p class="hint">Appen søger først efter et direkte match på produktnavn og producent. Er der ikke et, rangeres alle testede materialer efter lighed.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MINE MATERIALER -->
+    <section class="panel" id="panel-mine" role="tabpanel" hidden>
+      <div class="panel-head">
+        <div>
+          <h2>Mine materialer</h2>
+          <p class="hint">Materialer du har gemt. Matchet beregnes igen, hver gang testdatabasen ændres.</p>
+        </div>
+        <div class="actions">
+          <button class="btn" id="export-mine">Eksportér som CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table" id="mine-table">
+          <thead>
+            <tr><th>Materiale</th><th>Bedste match</th><th>Lighed</th><th>Vurdering</th><th></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="empty" id="mine-empty">Du har ikke gemt nogen materialer endnu.</p>
+    </section>
+
+    <!-- TESTDATABASE -->
+    <section class="panel" id="panel-database" role="tabpanel" hidden>
+      <div class="panel-head">
+        <div>
+          <h2>Testdatabase</h2>
+          <p class="hint">Oddy-testresultater, som materialer sammenlignes med. Data gemmes kun i denne browser.</p>
+        </div>
+        <div class="actions">
+          <input type="search" id="db-filter" placeholder="Filtrér…" aria-label="Filtrér testdatabase">
+          <button class="btn primary" id="new-record">Tilføj testresultat</button>
+        </div>
+      </div>
+
+      <form id="record-form" class="card form" hidden autocomplete="off">
+        <h3 id="record-form-title">Tilføj testresultat</h3>
+        <input type="hidden" name="id">
+        <label>Materiale / beskrivelse
+          <input name="name" required>
+        </label>
+        <div class="row">
+          <label>Kategori <input name="category" list="category-list"></label>
+          <label>Sammensætning <input name="composition" list="composition-list"></label>
+        </div>
+        <div class="row">
+          <label>Producent <input name="manufacturer" list="manufacturer-list"></label>
+          <label>Produktnavn <input name="product"></label>
+        </div>
+        <fieldset class="ratings">
+          <legend>Resultat pr. metalkupon</legend>
+          <label>Sølv <select name="silver"></select></label>
+          <label>Kobber <select name="copper"></select></label>
+          <label>Bly <select name="lead"></select></label>
+          <label>Samlet <select name="overall"></select></label>
+        </fieldset>
+        <div class="row">
+          <label>Kilde / testet af <input name="source"></label>
+          <label>Testdato <input name="date" type="date"></label>
+        </div>
+        <label>Nøgleord <input name="keywords"></label>
+        <label>Noter <textarea name="notes" rows="2"></textarea></label>
+        <div class="actions">
+          <button type="submit" class="btn primary">Gem</button>
+          <button type="button" class="btn ghost" id="cancel-record">Annullér</button>
+        </div>
+      </form>
+
+      <div class="table-wrap">
+        <table class="table" id="db-table">
+          <thead>
+            <tr><th>Materiale</th><th>Kategori</th><th>Producent / produkt</th><th title="Sølv, kobber, bly">Ag · Cu · Pb</th><th>Samlet</th><th></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="empty" id="db-empty" hidden>Testdatabasen er tom. Importér data eller tilføj et testresultat.</p>
+    </section>
+
+    <!-- IMPORT -->
+    <section class="panel" id="panel-import" role="tabpanel" hidden>
+      <div class="grid-2">
+        <div class="card">
+          <h2>Importér testresultater</h2>
+          <p>CSV (komma, semikolon eller tabulator) eller JSON. Kolonnenavne kan være danske eller engelske.</p>
+          <label>Fil
+            <input type="file" id="import-file" accept=".csv,.tsv,.txt,.json,text/csv,application/json">
+          </label>
+          <fieldset class="inline">
+            <legend>Ved import</legend>
+            <label><input type="radio" name="import-mode" value="append" checked> Tilføj til eksisterende</label>
+            <label><input type="radio" name="import-mode" value="replace"> Erstat hele databasen</label>
+          </fieldset>
+          <p id="import-status" class="status" aria-live="polite"></p>
+        </div>
+
+        <div class="card">
+          <h2>Eksportér og nulstil</h2>
+          <div class="actions stack">
+            <button class="btn" id="export-csv">Download database som CSV</button>
+            <button class="btn" id="export-json">Download database som JSON</button>
+            <button class="btn" id="download-template">Download tom skabelon (CSV)</button>
+            <button class="btn ghost" id="load-sample">Indlæs eksempeldata</button>
+            <button class="btn danger" id="clear-db">Tøm databasen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Kolonner</h3>
+        <table class="table compact">
+          <thead><tr><th>Kolonne</th><th>Også genkendt som</th><th>Indhold</th></tr></thead>
+          <tbody>
+            <tr><td>materiale</td><td>material, name, navn</td><td>Beskrivelse af materialet (påkrævet, hvis produkt mangler)</td></tr>
+            <tr><td>kategori</td><td>category, type</td><td>Fx Tekstil, Lim, Maling, Skum, Plast</td></tr>
+            <tr><td>sammensaetning</td><td>composition, polymer</td><td>Fx polyester, PVAc, akryl</td></tr>
+            <tr><td>producent</td><td>manufacturer, supplier</td><td>Producent eller leverandør</td></tr>
+            <tr><td>produkt</td><td>product, trade name</td><td>Handelsnavn eller varenummer</td></tr>
+            <tr><td>soelv, kobber, bly</td><td>silver, copper, lead, ag, cu, pb</td><td>P, T eller U</td></tr>
+            <tr><td>samlet</td><td>overall, rating, resultat</td><td>P, T eller U. Mangler den, bruges den dårligste kupon</td></tr>
+            <tr><td>kilde, dato, noter, noegleord</td><td>source, date, notes, keywords</td><td>Fritekst</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- OM -->
+    <section class="panel prose" id="panel-om" role="tabpanel" hidden>
+      <h2>Om Oddy-testen</h2>
+      <p>Oddy-testen er en accelereret ældningstest, hvor et materiale opvarmes i en lukket beholder med metalkuponer af sølv, kobber og bly. Korrosion på kuponerne viser, om materialet afgiver stoffer, der kan skade genstande i montrer, magasiner og emballage.</p>
+      <dl class="legend">
+        <div><dt><span class="chip P">P</span> Permanent</dt><dd>Egnet til permanent brug.</dd></div>
+        <div><dt><span class="chip T">T</span> Temporær</dt><dd>Egnet til midlertidig brug, typisk op til seks måneder.</dd></div>
+        <div><dt><span class="chip U">U</span> Uegnet</dt><dd>Bør ikke bruges i nærheden af genstande.</dd></div>
+      </dl>
+
+      <h2>Sådan matcher appen</h2>
+      <ol>
+        <li><strong>Direkte match:</strong> Produktnavnet er det samme, og producenten er den samme, hvis den er angivet begge steder. Store og små bogstaver, tegnsætning og accenter ignoreres.</li>
+        <li><strong>Nærmeste materiale:</strong> Ellers får hvert testet materiale en lighedsscore fra 0 til 100 %. Scoren vægter de felter, du har udfyldt:
+          produktnavn 30 %, sammensætning 25 %, kategori 20 %, producent 15 % og nøgleord 10 %.</li>
+        <li>Sammensætning og nøgleord sammenlignes ord for ord med synonymer, så fx <em>PE</em>, <em>polyethylene</em> og <em>polyethylen</em> regnes som det samme. Navne sammenlignes med tegn-trigrammer, så stavevarianter og varenumre giver delvis lighed.</li>
+      </ol>
+      <p class="warning">Et nærmeste match er en indikation, ikke et testresultat. Små forskelle i tilsætningsstoffer, farve, hærdning eller produktionsparti kan ændre resultatet. Test selv materialet, før det bruges tæt på genstande.</p>
+
+      <h2>Data</h2>
+      <p>Alt gemmes lokalt i browseren (localStorage) og sendes ikke nogen steder hen. Eksportér databasen jævnligt, hvis I vil dele eller sikre den.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap"><p>Oddy-opslag · data gemmes kun i din browser</p></div>
+  </footer>
+
+  <datalist id="category-list"></datalist>
+  <datalist id="composition-list"></datalist>
+  <datalist id="manufacturer-list"></datalist>
+  <datalist id="product-list"></datalist>
+
+  <template id="match-template">
+    <article class="match card">
+      <header class="match-head">
+        <div>
+          <p class="match-kind"></p>
+          <h3 class="match-name"></h3>
+          <p class="match-meta"></p>
+        </div>
+        <div class="match-overall"></div>
+      </header>
+      <div class="match-coupons"></div>
+      <div class="match-score"></div>
+      <dl class="match-parts"></dl>
+      <p class="match-notes"></p>
+    </article>
+  </template>
+
+  <script src="js/matcher.js"></script>
+  <script src="js/data.js"></script>
+  <script src="data/eksempeldata.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
