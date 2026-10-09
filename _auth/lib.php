@@ -2,6 +2,18 @@
 declare(strict_types=1);
 
 // Fælles funktioner for login.php og gate.php.
+// Koden kører også på ældre PHP (fra 7.4), så en forkert PHP-version på
+// webhotellet ikke giver en 500-fejl.
+
+if (!function_exists('str_starts_with')) {
+    function str_starts_with(string $h, string $n): bool { return $n === '' || strncmp($h, $n, strlen($n)) === 0; }
+}
+if (!function_exists('str_ends_with')) {
+    function str_ends_with(string $h, string $n): bool { return $n === '' || substr($h, -strlen($n)) === $n; }
+}
+if (!function_exists('str_contains')) {
+    function str_contains(string $h, string $n): bool { return $n === '' || strpos($h, $n) !== false; }
+}
 
 function cfg(): array
 {

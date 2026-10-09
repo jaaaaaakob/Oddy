@@ -21,7 +21,7 @@ if (!is_authed()) {
 $root = realpath(dirname(__DIR__));
 $rel = str_replace('\\', '/', (string) ($_GET['p'] ?? ''));
 
-function not_found(): never
+function not_found()
 {
     http_response_code(404);
     header('Content-Type: text/plain; charset=utf-8');
