@@ -4,7 +4,6 @@
 # Bevidst uden <IfModule>: mangler serveren mod_rewrite, giver den en fejl
 # i stedet for at vise siden ubeskyttet.
 
-Options -Indexes
 RewriteEngine On
 
 # Hvis siden ligger i en undermappe og ikke virker, så fjern # på næste linje
