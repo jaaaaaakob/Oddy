@@ -11,18 +11,22 @@ Appen er ren HTML, CSS og JavaScript uden build-trin.
 
 Første gang indlæses **eksempeldata**. Posterne er illustrative og **ikke rigtige testresultater**. Erstat dem med jeres egne data under *Import og eksport*.
 
-## Adgangskodebeskyttelse
+## Adgangskode
 
-Hele sitet kan låses med en fælles adgangskode. Beskyttelsen kører på serveren, så ingen kan komme uden om den ved at se kildekoden. Den kræver en **Apache-server med PHP 8 og mod_rewrite**, som de fleste danske webhoteller har.
+Siderne låses med en fælles adgangskode, der tjekkes i browseren. Det virker på alle webhoteller, men er **en forhindring og ikke rigtig sikkerhed**: Indholdet ligger stadig på serveren, og den, der kan læse kildekoden eller kender adressen på en fil, kan hente den uden login. Brug den ikke til følsomme oplysninger.
 
 1. Åbn `lav-adgangskode.html` på din egen computer (dobbeltklik), skriv en adgangskode og tryk *Lav kode*. Koden forlader ikke din computer.
-2. Indsæt resultatet i `_auth/config.php` ved `adgangskode_hash`. Her kan du også ændre sitets navn og hvor længe man bliver logget ind.
-3. Upload hele mappen til serveren, **inklusive den skjulte fil** `.htaccess`.
-4. **Test:** Åbn adressen i et privat vindue. Du skal se login-siden. Prøv også `din-adresse/css/style.css` og `din-adresse/_auth/config.php`. Begge skal sende dig til login eller give en fejl. Hvis du kan se indholdet, bliver `.htaccess` ikke læst. Bed så webhotellet slå `AllowOverride All` til.
+2. Åbn `adgang.js` i en teksteditor og indsæt resultatet ved `HASH` øverst i filen. Her kan du også ændre sitets navn.
+3. Sæt denne linje som den første i `<head>` på hver side, der skal låses (`index.html` har den allerede):
 
-Skift adgangskode ved at lave en ny kode og erstatte linjen i `config.php`. Efter 5 forkerte forsøg spærres IP-adressen i 15 minutter (ændres i `config.php`). Man logger ud via *Log ud* øverst på siden. Ligger sitet i en undermappe og virker det ikke, så følg kommentaren om `RewriteBase` i `.htaccess`.
+   ```html
+   <script src="adgang.js"></script>
+   ```
 
-`lav-adgangskode.html` indeholder ingen hemmeligheder, men behøver ikke ligge på serveren. Slet den gerne derfra.
+   Ligger siden i en undermappe, så ret stien, f.eks. `../adgang.js`.
+4. Upload `adgang.js` og siderne til serveren. Åbn adressen i et privat vindue og tjek, at login-siden vises.
+
+Man bliver logget ind, til fanen lukkes, eller i 30 dage, hvis man vælger *Husk mig på denne enhed*. Et link med `data-adgang-logud` logger ud (se *Log ud* øverst i `index.html`). Skifter du adgangskode, bliver alle logget ud. Siden skal åbnes via https (eller localhost).
 
 ## Funktioner
 
@@ -58,9 +62,8 @@ Kolonnerne genkendes også på engelsk (`material`, `manufacturer`, `product`, `
 
 ```
 index.html            Brugerflade
-.htaccess             Sender alle forespørgsler gennem adgangskontrollen
-_auth/                Login, adgangskontrol og indstillinger (PHP)
-lav-adgangskode.html  Laver adgangskode-hash til _auth/config.php
+adgang.js             Adgangskode til siderne (indstillinger øverst)
+lav-adgangskode.html  Laver adgangskode-kode til adgang.js
 css/style.css         Styling (lyst og mørkt tema)
 js/matcher.js         Matching og lighedsscore (ingen DOM, testbar)
 js/data.js            CSV/JSON-import og -eksport (ingen DOM, testbar)
