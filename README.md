@@ -17,7 +17,7 @@ Hele sitet kan låses med en fælles adgangskode. Beskyttelsen kører på server
 
 1. Åbn `lav-adgangskode.html` på din egen computer (dobbeltklik), skriv en adgangskode og tryk *Lav kode*. Koden forlader ikke din computer.
 2. Indsæt resultatet i `_auth/config.php` ved `adgangskode_hash`. Her kan du også ændre sitets navn og hvor længe man bliver logget ind.
-3. Upload hele mappen til serveren, **inklusive de skjulte filer** `.htaccess` og `_auth/.htaccess`.
+3. Upload hele mappen til serveren, **inklusive den skjulte fil** `.htaccess`.
 4. **Test:** Åbn adressen i et privat vindue. Du skal se login-siden. Prøv også `din-adresse/css/style.css` og `din-adresse/_auth/config.php`. Begge skal sende dig til login eller give en fejl. Hvis du kan se indholdet, bliver `.htaccess` ikke læst. Bed så webhotellet slå `AllowOverride All` til.
 
 Skift adgangskode ved at lave en ny kode og erstatte linjen i `config.php`. Efter 5 forkerte forsøg spærres IP-adressen i 15 minutter (ændres i `config.php`). Man logger ud via *Log ud* øverst på siden. Ligger sitet i en undermappe og virker det ikke, så følg kommentaren om `RewriteBase` i `.htaccess`.
