@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Lav adgangskode</title>
+  <style>
+    :root { --primaer: #154482; --primaer-moerk: #0e3260; --hvid: #fff; --tekst: #1b2433; --graa: #5b6678; --kant: #c9d2e0; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px; background: var(--primaer); color: var(--tekst); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { width: 100%; max-width: 560px; background: var(--hvid); border-radius: 12px; padding: 32px; box-shadow: 0 12px 40px rgba(0, 0, 0, .25); }
+    h1 { margin: 0 0 4px; font-size: 1.5rem; color: var(--primaer); }
+    p { margin: 0 0 16px; color: var(--graa); }
+    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: .95rem; color: var(--tekst); }
+    input { width: 100%; padding: 12px 14px; font: inherit; border: 2px solid var(--kant); border-radius: 8px; }
+    input:focus { outline: none; border-color: var(--primaer); box-shadow: 0 0 0 3px rgba(21, 68, 130, .25); }
+    button { padding: 12px 20px; font: inherit; font-weight: 600; color: var(--hvid); background: var(--primaer); border: 0; border-radius: 8px; cursor: pointer; }
+    button:hover { background: var(--primaer-moerk); }
+    button:focus-visible { outline: 3px solid var(--primaer); outline-offset: 2px; }
+    button.sek { color: var(--primaer); background: #e8eef7; }
+    button.sek:hover { background: #d6e2f3; }
+    .raekke { display: flex; gap: 10px; margin-top: 16px; }
+    #ud { display: none; margin-top: 24px; }
+    #ud.vist { display: block; }
+    code { display: block; padding: 12px 14px; font: .85rem/1.5 ui-monospace, Menlo, Consolas, monospace; word-break: break-all; color: var(--primaer); background: #e8eef7; border: 1px solid #c3d3ea; border-radius: 8px; user-select: all; }
+    ol { margin: 16px 0 0; padding-left: 20px; color: var(--graa); }
+    #fejl { color: #a4262c; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Lav adgangskode</h1>
+    <p>Vælg en adgangskode. Siden laver en kode, du kan indsætte på serveren. Selve adgangskoden forlader aldrig din computer.</p>
+
+    <form id="f">
+      <label for="kode">Ny adgangskode</label>
+      <input id="kode" type="text" autocomplete="off" required minlength="8" spellcheck="false">
+      <p style="margin:6px 0 0;font-size:.85rem">Mindst 8 tegn. Flere ord efter hinanden er svære at gætte og nemme at huske.</p>
+      <div class="raekke"><button type="submit">Lav kode</button></div>
+      <p id="fejl" role="alert"></p>
+    </form>
+
+    <div id="ud">
+      <label>Din kode til serveren</label>
+      <code id="hash"></code>
+      <div class="raekke"><button type="button" class="sek" id="kopier">Kopiér</button></div>
+      <ol>
+        <li>Åbn <strong>_auth/config.php</strong> i en teksteditor.</li>
+        <li>Indsæt koden mellem citationstegnene ved <strong>'adgangskode_hash'</strong>.</li>
+        <li>Gem filen og upload den til serveren.</li>
+      </ol>
+    </div>
+  </main>
+  <script>
+    var ITERATIONER = 210000;
+    function hex(buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+    }
+    document.getElementById('f').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var fejl = document.getElementById('fejl');
+      fejl.textContent = '';
+      if (!window.crypto || !crypto.subtle) {
+        fejl.textContent = 'Din browser kan ikke lave koden her. Prøv en nyere browser.';
+        return;
+      }
+      var kode = document.getElementById('kode').value;
+      var salt = hex(crypto.getRandomValues(new Uint8Array(16)));
+      var enc = new TextEncoder();
+      var nøgle = await crypto.subtle.importKey('raw', enc.encode(kode), 'PBKDF2', false, ['deriveBits']);
+      var bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode(salt), iterations: ITERATIONER }, nøgle, 256);
+      document.getElementById('hash').textContent = 'pbkdf2$sha256$' + ITERATIONER + '$' + salt + '$' + hex(bits);
+      document.getElementById('ud').className = 'vist';
+    });
+    document.getElementById('kopier').addEventListener('click', function () {
+      var t = document.getElementById('hash').textContent, b = this;
+      (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () {
+        b.textContent = 'Kopieret';
+      }, function () {
+        var r = document.createRange(); r.selectNodeContents(document.getElementById('hash'));
+        var s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Markeret – tryk Ctrl/Cmd+C';
+      });
+    });
+  </script>
+</body>
+</html>

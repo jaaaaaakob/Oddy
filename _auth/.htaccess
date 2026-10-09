@@ -1,0 +1,5 @@
+# Alt i denne mappe er spærret, undtagen de to filer der skal kunne kaldes.
+Require all denied
+<FilesMatch "^(login|gate)\.php$">
+    Require all granted
+</FilesMatch>
